@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ร้านหม่าล่า</title>
+    <style>
+        body {
+            font-family: 'Sukhumvit Set', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .menu-category {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+        .item-name {
+            flex: 2;
+        }
+        .item-price {
+            flex: 1;
+            color: #888;
+        }
+        .quantity-control {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        .quantity {
+            margin: 0 10px;
+            min-width: 30px;
+            text-align: center;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 0 2px;
+        }
+        button.decrement {
+            background-color: #f44336;
+        }
+        #order-summary {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        input {
+            padding: 5px;
+            margin: 5px 0;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ร้านหม่าล่า 🌶️</h1>
+
+    <!-- เมนูเนื้อสัตว์ ผัก อื่นๆ -->
+    <div class="menu-category">
+        <h2>เนื้อสัตว์ ผัก อื่นๆ (บาท/ชิ้น)</h2>
+        <div id="meat-veggies-items"></div>
+    </div>
+
+    <!-- เมนูน้ำซุป -->
+    <div class="menu-category">
+        <h2>น้ำซุป (บาท/ชิ้น)</h2>
+        <div id="soup-items"></div>
+    </div>
+
+    <!-- เมนูน้ำจิ้ม -->
+    <div class="menu-category">
+        <h2>น้ำจิ้ม (บาท/ชิ้น)</h2>
+        <div id="dip-items"></div>
+    </div>
+
+    <div id="order-summary">
+        <h2>สรุปรายการสั่งซื้อ</h2>
+        <input type="text" id="customer-name" placeholder="ชื่อคนสั่ง"><br>
+        <input type="tel" id="customer-phone" placeholder="เบอร์โทรผู้สั่ง"><br>
+        <input type="text" id="delivery-address" placeholder="สถานที่จัดส่ง"><br>
+        <button onclick="generateBill()">สรุปบิล</button>
+        <div id="bill-details"></div>
+    </div>
+
+    <script>
+        const menuItems = {
+            'meat-veggies': [
+                {name: 'สันคอสไลด์', price: 10},
+                {name: 'สามชั้นสไลด์', price: 10},
+                {name: 'เต้าหู้ชีส', price: 5},
+                {name: 'ซาลาเปาไส้ชีส', price: 5},
+                {name: 'หมี่หยก', price: 7},
+                {name: 'วุ้นเส้น', price: 5},
+                {name: 'เส้นมันเทศ', price: 10},
+                {name: 'ฟองเต้าหู้', price: 10},
+                {name: 'เบบี้ฮ่องเต้', price: 5},
+                {name: 'กะหล่ำปี', price: 5},
+                {name: 'เห็ดเข็มทอง', price: 5}
+            ],
+            'soup': [
+                {name: 'หม่าล่า', price: 19},
+                {name: 'หม่าล่านม', price: 19}
+            ],
+            'dip': [
+                {name: 'น้ำจิ้มงา', price: 10},
+                {name: 'น้ำจิ้มงาหม่าล่า', price: 10}
+            ]
+        };
+
+        function createMenuItems(category, containerId) {
+            const container = document.getElementById(containerId);
+            menuItems[category].forEach((item, index) => {
+                const itemId = `${category}-${index}`;
+                const html = `
+                    <div class="menu-item">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-price">${item.price} บาท</div>
+                        <div class="quantity-control">
+                            <button class="decrement" onclick="updateQuantity('${itemId}', -1)">-</button>
+                            <div class="quantity" id="qty-${itemId}">0</div>
+                            <button onclick="updateQuantity('${itemId}', 1)">+</button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        window.onload = function() {
+            createMenuItems('meat-veggies', 'meat-veggies-items');
+            createMenuItems('soup', 'soup-items');
+            createMenuItems('dip', 'dip-items');
+        };
+
+        const quantities = {};
+        function updateQuantity(itemId, amount) {
+            const newQty = Math.max(0, (quantities[itemId] || 0) + amount);
+            quantities[itemId] = newQty;
+            document.getElementById(`qty-${itemId}`).textContent = newQty;
+        }
+
+        function generateBill() {
+            const customerName = document.getElementById('customer-name').value;
+            const customerPhone = document.getElementById('customer-phone').value;
+            const deliveryAddress = document.getElementById('delivery-address').value;
+            
+            let total = 0;
+            let billHtml = '<h3>รายการสั่งซื้อ:</h3>';
+            
+            Object.keys(quantities).forEach(itemId => {
+                if(quantities[itemId] > 0) {
+                    const [category, index] = itemId.split('-');
+                    const item = menuItems[category][index];
+                    const subtotal = item.price * quantities[itemId];
+                    total += subtotal;
+                    billHtml += `<p>${item.name} x ${quantities[itemId]} = ${subtotal} บาท</p>`;
+                }
+            });
+
+            billHtml += `<h3>รวมทั้งหมด: ${total} บาท</h3>`;
+            billHtml += `<p>ชื่อผู้สั่ง: ${customerName}</p>`;
+            billHtml += `<p>เบอร์โทร: ${customerPhone}</p>`;
+            billHtml += `<p>ที่อยู่จัดส่ง: ${deliveryAddress}</p>`;
+
+            document.getElementById('bill-details').innerHTML = billHtml;
+        }
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html>
+<head>
+<title>Page Title</title>
+</head>
+<body>
+
+<h1>This is a Heading</h1>
+<p>This is a paragraph.</p>
+
+</body>
+</html>
+
+
