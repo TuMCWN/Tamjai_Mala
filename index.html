@@ -153,30 +153,34 @@
         }
 
         function generateBill() {
-            const customerName = document.getElementById('customer-name').value;
-            const customerPhone = document.getElementById('customer-phone').value;
-            const deliveryAddress = document.getElementById('delivery-address').value;
+    const customerName = document.getElementById('customer-name').value;
+    const customerPhone = document.getElementById('customer-phone').value;
+    const deliveryAddress = document.getElementById('delivery-address').value;
+    
+    let total = 0;
+    let billHtml = '<h3>รายการสั่งซื้อ:</h3>';
+    
+    Object.keys(quantities).forEach(itemId => {
+        if(quantities[itemId] > 0) {
+            // แยก category และ index อย่างถูกต้อง
+            const parts = itemId.split('-');
+            const index = parts.pop(); // ดึง index ออกมา
+            const category = parts.join('-'); // รวมส่วนที่เหลือกลับเป็น category
+            const item = menuItems[category][index];
             
-            let total = 0;
-            let billHtml = '<h3>รายการสั่งซื้อ:</h3>';
-            
-            Object.keys(quantities).forEach(itemId => {
-                if(quantities[itemId] > 0) {
-                    const [category, index] = itemId.split('-');
-                    const item = menuItems[category][index];
-                    const subtotal = item.price * quantities[itemId];
-                    total += subtotal;
-                    billHtml += `<p>${item.name} x ${quantities[itemId]} = ${subtotal} บาท</p>`;
-                }
-            });
-
-            billHtml += `<h3>รวมทั้งหมด: ${total} บาท</h3>`;
-            billHtml += `<p>ชื่อผู้สั่ง: ${customerName}</p>`;
-            billHtml += `<p>เบอร์โทร: ${customerPhone}</p>`;
-            billHtml += `<p>ที่อยู่จัดส่ง: ${deliveryAddress}</p>`;
-
-            document.getElementById('bill-details').innerHTML = billHtml;
+            const subtotal = item.price * quantities[itemId];
+            total += subtotal;
+            billHtml += `<p>${item.name} x ${quantities[itemId]} = ${subtotal} บาท</p>`;
         }
+    });
+
+    billHtml += `<h3>รวมทั้งหมด: ${total} บาท</h3>`;
+    billHtml += `<p>ชื่อผู้สั่ง: ${customerName}</p>`;
+    billHtml += `<p>เบอร์โทร: ${customerPhone}</p>`;
+    billHtml += `<p>ที่อยู่จัดส่ง: ${deliveryAddress}</p>`;
+
+    document.getElementById('bill-details').innerHTML = billHtml;
+}
     </script>
 </body>
 </html><!DOCTYPE html>
@@ -191,5 +195,4 @@
 
 </body>
 </html>
-
 
